@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Estacionamento</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <header class="main-header">
+        <div class="header-content">
+            <div>
+                <h1>Estacionamento</h1>
+                <p class="subtitle">Estadias — Gerencie a entrada, saída e permanência de veículos no pátio.</p>
+            </div>
+            <div class="header-actions">
+                <button id="btnNovaEstadia" class="btn btn-success">+ Nova Estadia</button>
+                <button id="btnAbrirVeiculos" class="btn btn-secondary">Veículos</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>PLACA</th>
+                        <th>ENTRADA</th>
+                        <th>SAÍDA</th>
+                        <th>VALOR/HORA</th>
+                        <th>TOTAL</th>
+                        <th>STATUS</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaEstadiasCorpo">
+                    <tr>
+                        <td colspan="8" class="text-center">Carregando estadias...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="modalNovaEstadia" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrar Entrada de Estadia</h2>
+                <button class="btn-close" onclick="fecharModal('modalNovaEstadia')">&times;</button>
+            </div>
+            <form id="formNovaEstadia" onsubmit="salvarNovaEstadia(event)">
+                <div class="form-group">
+                    <label for="estadiaPlaca">Placa do Veículo</label>
+                    <input type="text" id="estadiaPlaca" required placeholder="Ex: ABC1234" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label for="estadiaValorHora">Valor por Hora (R$)</label>
+                    <input type="number" id="estadiaValorHora" step="0.01" min="0" required placeholder="Ex: 10.00">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" onclick="fecharModal('modalNovaEstadia')">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalEditarEstadia" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Estadia</h2>
+                <button class="btn-close" onclick="fecharModal('modalEditarEstadia')">&times;</button>
+            </div>
+            <form id="formEditarEstadia" onsubmit="salvarEdicaoEstadia(event)">
+                <input type="hidden" id="editEstadiaId">
+                <div class="form-group">
+                    <label for="editEstadiaPlaca">Placa</label>
+                    <input type="text" id="editEstadiaPlaca" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEstadiaEntrada">Entrada (Data/Hora)</label>
+                    <input type="datetime-local" id="editEstadiaEntrada" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEstadiaSaida">Saída (Data/Hora)</label>
+                    <input type="datetime-local" id="editEstadiaSaida">
+                </div>
+                <div class="form-group">
+                    <label for="editEstadiaValorHora">Valor por Hora (R$)</label>
+                    <input type="number" id="editEstadiaValorHora" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEstadiaValorTotal">Valor Total (R$)</label>
+                    <input type="number" id="editEstadiaValorTotal" step="0.01" min="0">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" onclick="fecharModal('modalEditarEstadia')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalVeiculos" class="modal-overlay hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Veículos Cadastrados</h2>
+                <button class="btn-close" onclick="fecharModal('modalVeiculos')">&times;</button>
+            </div>
+            <div class="modal-toolbar">
+                <button id="btnNovoVeiculo" class="btn btn-success">+ Cadastrar Veículo</button>
+            </div>
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>PLACA</th>
+                            <th>MARCA / MODELO</th>
+                            <th>PROPRIETÁRIO</th>
+                            <th>TIPO</th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaVeiculosCorpo">
+                        <tr>
+                            <td colspan="5" class="text-center">Carregando veículos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="fecharModal('modalVeiculos')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalFormVeiculo" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tituloModalVeiculo">Cadastrar Veículo</h2>
+                <button class="btn-close" onclick="fecharModal('modalFormVeiculo')">&times;</button>
+            </div>
+            <form id="formVeiculo" onsubmit="salvarVeiculo(event)">
+                <input type="hidden" id="veiculoModoEdicao" value="false">
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="veiculoPlaca">Placa</label>
+                        <input type="text" id="veiculoPlaca" required placeholder="Ex: ABC1234">
+                    </div>
+                    <div class="form-group half">
+                        <label for="veiculoTipo">Tipo</label>
+                        <select id="veiculoTipo" required>
+                            <option value="CARRO">Carro</option>
+                            <option value="MOTO">Moto</option>
+                            <option value="VAN">Van</option>
+                            <option value="CAMINHAO">Caminhão</option>
+                            <option value="ONIBUS">Ônibus</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="veiculoProprietario">Proprietário</label>
+                    <input type="text" id="veiculoProprietario" required placeholder="Nome do proprietário">
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="veiculoMarca">Marca</label>
+                        <input type="text" id="veiculoMarca" required placeholder="Ex: Fiat">
+                    </div>
+                    <div class="form-group half">
+                        <label for="veiculoModelo">Modelo</label>
+                        <input type="text" id="veiculoModelo" required placeholder="Ex: Uno">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="veiculoCor">Cor</label>
+                        <input type="text" id="veiculoCor" required placeholder="Ex: Preto">
+                    </div>
+                    <div class="form-group half">
+                        <label for="veiculoAno">Ano</label>
+                        <input type="number" id="veiculoAno" required placeholder="Ex: 2020">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="veiculoTelefone">Telefone</label>
+                    <input type="text" id="veiculoTelefone" required placeholder="Ex: 19 99999-9999">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" onclick="fecharModal('modalFormVeiculo')">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvarVeiculo">Salvar Veículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
